@@ -33,21 +33,27 @@ algo.train(trainset)
 # Read the mappings raw id <-> movie name
 rid_to_name, name_to_rid = read_item_names()
 
-# Retieve inner id of the movie Toy Story
-toy_story_raw_id = name_to_rid['Aladdin (1992)']
-toy_story_inner_id = algo.trainset.to_inner_iid(toy_story_raw_id)
 
-# Retrieve inner ids of the nearest neighbors of Toy Story.
-toy_story_neighbors = algo.get_neighbors(toy_story_inner_id, k=10)
 
-# Convert inner ids of the neighbors into names.
-toy_story_neighbors = (algo.trainset.to_raw_iid(inner_id)
-                       for inner_id in toy_story_neighbors)
-toy_story_neighbors = (rid_to_name[rid]
-                       for rid in toy_story_neighbors)
+def get_recommendations(movie_name):
+	
+	# Retieve inner id of the movie
+	movie_raw_id = name_to_rid[movie_name]
+	movie_inner_id = algo.trainset.to_inner_iid(movie_raw_id)
 
-print()
-print('The 10 nearest neighbors of Toy Story are:')
-for movie in toy_story_neighbors:
-    print(movie)
+	# Retrieve inner ids of the nearest neighbors of movie.
+	movie_neighbors = algo.get_neighbors(movie_inner_id, k=10)
 
+	# Convert inner ids of the neighbors into names.
+	movie_neighbors = (algo.trainset.to_raw_iid(inner_id)
+        for inner_id in movie_neighbors)
+	movie_neighbors = (rid_to_name[rid] for rid in movie_neighbors)
+	print()
+	print('The 10 nearest neighbors of '+ movie_name +' are:')
+		
+	for movie in movie_neighbors:
+    		print(movie)
+
+if __name__ == '__main__':
+	movie_name = raw_input("Enter movie name:")
+	get_recommendations(movie_name)

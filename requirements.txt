@@ -1,0 +1,6 @@
+scipy
+numpy
+csc-pysparse
+networkx
+divisi2
+python-recsys

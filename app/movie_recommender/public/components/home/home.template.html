@@ -1,0 +1,17 @@
+{% raw %}
+<div class="container">
+  <div class="card mx-auto my-5" id="home-panel">
+    <div class="card-header">
+      Logged in as <strong>{{ user.username }}</strong>
+      
+      <span class="pull-right">
+        <a href @click.prevent="logout">Logout</a>
+      </span>
+    </div>
+
+    <div class="card-block">
+      <router-view></router-view>
+    </div>
+  </div>
+</div>
+{% endraw %}

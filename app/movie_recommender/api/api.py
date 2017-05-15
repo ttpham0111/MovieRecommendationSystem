@@ -6,6 +6,13 @@ from movie_recommender.api import dataset
 from movie_recommender.api import knn
 
 
+from collections import defaultdict
+from surprise import SVD
+from surprise import Dataset
+from surprise import NMF
+
+
+
 api = Blueprint('api', __name__)
 
 
@@ -61,5 +68,37 @@ def recommend_movies_based_on_movie(movie_id):
 @login_required
 @api.route('/movies/recommended', methods=['GET'])
 def recommend_movies_based_on_user():
-    user_id = session['user_id']
-    pass
+    # user_id = session['user_id']
+    data = Dataset.load_builtin('ml-100k')
+    trainset = data.build_full_trainset()
+    algo = NMF()
+    algo.train(trainset)
+    #input a user id
+    uid_test = str(101) 
+    #input an item id
+    iid_test = str(300)
+
+    #predictions = algo.predict(uid_test, iid_test, r_ui = 4, verbose = true)
+    
+    testset = trainset.build_anti_testset()
+    predictions = algo.test(testset)
+
+    top_n = get_top_n_items(predictions, n = 10)
+
+    for uid, user_ratings in top_n.items():
+        print (uid, [iid for (iid, _) in user_ratings])
+
+    return jsonify(predictions), 200
+
+
+
+def get_top_n_items(predictions, n = 10):
+    top_n_items = defaultdict(list)
+    for uid, iid, true_r, est, _ in predictions:
+        top_n_items[uid].append((iid,est))
+
+    for uid, user_ratings in top_n_items.items():
+        user_ratings.sort(key=lambda x: x[1], reverse=True)
+        top_n_items[uid] = user_ratings[:n]
+
+    return top_n_items

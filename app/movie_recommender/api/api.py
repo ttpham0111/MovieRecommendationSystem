@@ -4,8 +4,6 @@ from flask import Blueprint, jsonify, session, request
 
 from movie_recommender.api.data import movie_dataset
 from movie_recommender.api.models import movie_recommender
-
-
 from collections import defaultdict
 from surprise import SVD
 from surprise import Dataset
@@ -70,7 +68,7 @@ def recommend_movies_based_on_user():
     uid_test = str(101) 
     #input an item id
     iid_test = str(300)
-
+    user_id = str(932)
     #predictions = algo.predict(uid_test, iid_test, r_ui = 4, verbose = true)
     
     testset = trainset.build_anti_testset()
@@ -78,10 +76,13 @@ def recommend_movies_based_on_user():
 
     top_n = get_top_n_items(predictions, n = 10)
 
-    for uid, user_ratings in top_n.items():
-        print (uid, [iid for (iid, _) in user_ratings])
+    recommended_movies = top_n[user_id]
 
-    return jsonify(predictions), 200
+    # for uid, user_ratings in top_n.items():
+    #     print (uid, [iid for (iid, _) in user_ratings])
+    # print (user_id)
+    # user_index = predictions.index(user_id)
+    return jsonify(recommended_movies), 200
 
 
 

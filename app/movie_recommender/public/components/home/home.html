@@ -12,7 +12,7 @@
         movieMap: {},
 
         viewableMovies: [],
-        numMoviesInView: 50,
+        numMoviesInView: 100,
         selectedMovie: null,
         recommendedMovies: {},
         movieSearch: ''
@@ -49,7 +49,7 @@
       this.getMovies().then(
         function() {
           self.putRandomMoviesIntoView();
-          setInterval(self.putRandomMoviesIntoView, 5000);
+          setInterval(self.putRandomMoviesIntoView, 10000);
         }
       );
     },

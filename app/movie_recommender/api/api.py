@@ -2,8 +2,8 @@ from functools import wraps
 
 from flask import Blueprint, jsonify, session, request
 
-from movie_recommender.api import dataset
-from movie_recommender.api import knn
+from movie_recommender.api.data import movie_dataset
+from movie_recommender.api.models import movie_recommender
 
 
 from collections import defaultdict
@@ -48,20 +48,13 @@ def logout():
 
 @api.route('/movies', methods=['GET'])
 def get_movies():
-    """ Returns a list of movies.
-
-    Returns a list of all movies in the dataset with id, title, year of release, link to imdb page, and genres it belongs to.
-    """
-
-    movies = dataset.load_movies()
+    movies = movie_dataset.get_movies()
     return jsonify(movies), 200
 
 
 @api.route('/movie/<movie_id>/recommended', methods=['GET'])
 def recommend_movies_based_on_movie(movie_id):
-    movie_id = request.view_args['movie_id']
-    movies = knn.get_recommendations(movie_id)
-
+    movies = movie_recommender.get_similar_movies(movie_id)
     return jsonify(movies), 200
 
 

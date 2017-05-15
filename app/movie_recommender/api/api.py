@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, session
-
+import io
+import os
 
 api = Blueprint('api', __name__)
 
@@ -17,7 +18,37 @@ def login():
 
 @api.route('/movies', methods=['GET'])
 def get_movies():
-    pass
+    movies = []
+    dataset = (os.path.expanduser('~')+'/.surprise_data/ml-100k/ml-100k/u.item')
+    with io.open(dataset, 'r', encoding='ISO-8859-1') as movies_dataset:
+        for line in movies_dataset:
+            token = line.split('|')
+
+            movie = {
+                "id" : token[0],
+                "title" : token[1][:-7],
+                "year" : token[2][-4:],
+                "link" : token[4],
+                "genres": get_genres(token[5:])
+            }
+
+            movies.append(movie)
+
+    return jsonify(movies), 200
+
+
+def get_genres(bits):
+    all_genres = [
+        "Action", "Adventure", "Animation", "Children's",
+        "Comedy", "Crime", "Documentary", "Drama", "Fantasy",
+        "Film-Noir", "Horror", "Musical", "Mystery", "Romance",
+        "Sci-Fi", "Thriller", "War", "Western"
+    ]
+
+    indexes = [i for i, b in enumerate(bits) if b == '1']
+    genres = [all_genres[i] for i in indexes]
+    return genres
+
 
 
 @api.route('/movie/<movie_id>/recommended', methods=['GET'])

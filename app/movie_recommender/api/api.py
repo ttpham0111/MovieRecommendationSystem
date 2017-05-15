@@ -2,6 +2,9 @@ from functools import wraps
 
 from flask import Blueprint, jsonify, session, request
 
+from movie_recommender.api import dataset
+from movie_recommender.api import knn
+
 
 api = Blueprint('api', __name__)
 
@@ -38,12 +41,21 @@ def logout():
 
 @api.route('/movies', methods=['GET'])
 def get_movies():
-    pass
+    """ Returns a list of movies.
+
+    Returns a list of all movies in the dataset with id, title, year of release, link to imdb page, and genres it belongs to.
+    """
+
+    movies = dataset.load_movies()
+    return jsonify(movies), 200
 
 
 @api.route('/movie/<movie_id>/recommended', methods=['GET'])
 def recommend_movies_based_on_movie(movie_id):
-    pass
+    movie_id = request.view_args['movie_id']
+    movies = knn.get_recommendations(movie_id)
+
+    return jsonify(movies), 200
 
 
 @login_required

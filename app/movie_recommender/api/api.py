@@ -2,7 +2,6 @@ from functools import wraps
 
 from flask import Blueprint, jsonify, session, request
 
-from movie_recommender.api import knn
 from movie_recommender.api.data import movie_dataset
 from movie_recommender.api.models import movie_recommender
 

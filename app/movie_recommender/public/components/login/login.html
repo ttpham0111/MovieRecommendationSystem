@@ -1,0 +1,31 @@
+<script type="x-template" id="login">
+  {% include 'components/login/login.template.html' %}
+</script>
+
+<script>
+  Vue.component('mr-login', {
+    template: "#login",
+
+    data: function() {
+      return {
+        username: ''
+      };
+    },
+
+    methods: {
+      onSubmit: function() {
+        this.login(this.username);
+      },
+
+      login: function(username) {
+        $router = this.$router;
+
+        AuthService.login(username,
+          function() {
+            $router.push('home');
+          }
+        );
+      }
+    }    
+  });
+</script>

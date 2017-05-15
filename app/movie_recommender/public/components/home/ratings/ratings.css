@@ -1,0 +1,9 @@
+.rating {
+  color: #eee;
+}
+.rating:hover {
+  cursor: pointer;
+}
+.rating > i.active {
+  color: #ffeb3b;
+}

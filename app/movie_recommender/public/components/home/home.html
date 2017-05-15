@@ -3,7 +3,169 @@
 </script>
 
 <script>
-  Vue.component('p-home', {
-    template: "#home"
+  Vue.component('mr-home', {
+    template: "#home",
+
+    data: function() {
+      return {
+        movies: [],
+        movieMap: {},
+
+        viewableMovies: [],
+        numMoviesInView: 50,
+        selectedMovie: null,
+        recommendedMovies: {},
+        movieSearch: ''
+      };
+    },
+
+    computed: {
+      user: function() {
+        return AuthService.getUser();
+      },
+
+      matchedMovies: function() {
+        var movieSearch = this.movieSearch.toLowerCase();
+        if (!movieSearch) return [];
+
+        return this.movies.filter(function(movie) {
+          return movie.title.toLowerCase().startsWith(movieSearch);
+        });
+      }
+    },
+
+    watch: {
+      movieSearch: function(newVal) {
+        if (newVal && this.selectedMovie && newVal !== this.selectedMovie.title) {
+          this.selectedMovie = null;
+          this.recommendedMovies = {};
+        }
+      }
+    },
+
+    created: function() {
+      var self = this;
+
+      this.getMovies().then(
+        function() {
+          self.putRandomMoviesIntoView();
+          setInterval(self.putRandomMoviesIntoView, 5000);
+        }
+      );
+    },
+
+    methods: {
+      logout: function() {
+        var self = this;
+        AuthService.logout().then(function() {
+          self.$router.push('login');
+        });
+      },
+
+      getMovies: function() {
+        var self = this;
+
+        return this.$http.get('/api/movies').then(
+          function(res) {
+            self.movies = res.body;
+            self.movies.forEach(function(movie) {
+              self.movieMap[movie.id] = movie;
+            });
+          }
+        );
+      },
+
+      putRandomMoviesIntoView: function() {
+        var randomizedMovies = this.movies.slice().sort(function() { return 0.5 - Math.random(); });
+        this.viewableMovies = randomizedMovies.slice(0, this.numMoviesInView);
+        this.putRecommendedMoviesIntoView();
+      },
+
+      putRecommendedMoviesIntoView: function() {
+        var recommendedMovies = this.recommendedMovies;
+        var numRecommendedMovies = recommendedMovies.length;
+        if (numRecommendedMovies === 0) return;
+        
+        // Find all recommended movies already in the view.
+        recommendedMoviesAlreadyInView = {};
+        var viewableMovies = this.viewableMovies;
+        viewableMovies.forEach(function(movie) {
+          if (recommendedMovies.hasOwnProperty(movie.id)) recommendedMoviesAlreadyInView[movie.id] = true;
+        });
+
+        // Find all recommended movies missing from the view.
+        missingMovies = [];
+        for (var movieId in recommendedMovies) {
+          if (recommendedMovies.hasOwnProperty(movieId) && !recommendedMoviesAlreadyInView.hasOwnProperty(movieId))
+            missingMovies.push(recommendedMovies[movieId]);
+        }
+
+        // Add the missing movies to random locations in the view.
+        var $set = this.$set;
+        var numMoviesInView = this.numMoviesInView;
+        missingMovies.forEach(function(movie) {
+          i = Math.floor(Math.random() * numMoviesInView);
+
+          // Find a random location that doesn't already have a recommended movie.
+          while (recommendedMovies.hasOwnProperty(viewableMovies[i].id)) {
+            i = Math.floor(Math.random() * numMoviesInView);
+          }
+
+          $set(viewableMovies, i, movie);
+        });
+      },
+
+      getMovieClass: function(movieId) {
+        if (this.recommendedMovies.hasOwnProperty(movieId)) {
+          return ['card-inverse', 'card-primary', 'recommended'];
+        }
+      },
+
+      getGenreColor: function(genre) {
+        var genreLowerCased = genre.toLowerCase();
+        return this.strToColor(genreLowerCased);
+      },
+
+      getRecommendedMovies: function() {
+        var self = this;
+        var recommendedMovies = {};
+
+        var url = '/api/movie/' + this.selectedMovie.id + '/recommended';
+        return this.$http.get(url).then(
+          function(res) {
+            var movieMap = self.movieMap;
+            res.body.forEach(function(movie) {
+              recommendedMovies[movie.id] = movieMap[movie.id];
+            });
+
+            self.$set(self, 'recommendedMovies', recommendedMovies);
+          }
+        );
+      },
+
+      onSelectMovie: function(movie) {
+        this.movieSearch = movie.title;
+        this.selectedMovie = movie;
+        this.getRecommendedMovies().then(this.putRecommendedMoviesIntoView);
+      },
+
+      onRateMovie: function(movie, stars) {
+        console.log(movie.title, stars);
+      },
+
+      strToColor: function(str) {
+        var hash = 0;
+        for (var i = 0; i < str.length; i++) {
+          hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+
+        var color = '#';
+        for (var i = 0; i < 3; i++) {
+          var value = (hash >> (i * 8)) & 0xFF;
+          color += ('00' + value.toString(16)).substr(-2);
+        }
+        return color;
+      }
+    }
   });
 </script>

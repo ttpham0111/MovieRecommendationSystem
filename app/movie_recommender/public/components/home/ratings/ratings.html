@@ -1,0 +1,31 @@
+<script>
+  Vue.component('mr-ratings', {
+    template: `
+      <div>
+        <span v-for="i in numRatings" class="rating pr-1"
+          @mouseenter="activeRating = i" @mouseleave="activeRating = -1" @click="rate(i)">
+          <i class="fa fa-star" :class="{ active: i <= activeRating }"></i>
+        </span>
+      </div>
+    `,
+
+    props: {
+      numRatings: {
+        type: Number,
+        default: 5
+      }
+    },
+
+    data: function() {
+      return {
+        activeRating: -1
+      }
+    },
+
+    methods: {
+      rate: function(stars) {
+        this.$emit('click', stars);
+      }
+    }
+  });
+</script>

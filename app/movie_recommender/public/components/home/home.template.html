@@ -1,6 +1,6 @@
 {% raw %}
-<div class="container">
-  <div class="card mx-auto my-5" id="home-panel">
+<div class="container" id="home-container">
+  <div class="card mx-auto" id="home-panel">
     <div class="card-header">
       Logged in as <strong>{{ user.username }}</strong>
       
@@ -10,7 +10,43 @@
     </div>
 
     <div class="card-block">
-      <router-view></router-view>
+      <div class="dropdown" :class="{ 'show': matchedMovies.length > 0 && !selectedMovie }">
+        <div class="input-group">
+          <input type="text" class="form-control" v-model="movieSearch" placeholder="Find a movie">
+          <span class="input-group-addon"><i class="fa fa-search"></i></span>
+        </div>
+
+        <div class="dropdown-menu w-100">
+          <template v-for="(movie, index) in matchedMovies" v-if="index <= 3">
+            <a class="dropdown-item" href @click.prevent="onSelectMovie(movie)">{{ movie.title }}</a>
+            <div class="dropdown-divider"></div>
+          </template>
+
+          <a v-if="matchedMovies.length > 3" class="dropdown-item disabled" href>Too many results...</a> 
+        </div>
+      </div>
+
+      <div v-if="selectedMovie" class="card-text mt-3">
+        <h5 class="card-title">{{ selectedMovie.title }}</h5>
+        <span v-for="genre in selectedMovie.genres" class="badge badge-default text-capitalize mr-1" :style="{ 'background-color': getGenreColor(genre) }">
+          {{ genre }}
+        </span>
+        <mr-ratings class="ratings text-center" @click="onRateMovie(selectedMovie, $event)"></mr-ratings>
+      </div>
+    </div>
+  </div>
+
+  <div id="movie-dome" class="d-flex flex-wrap justify-content-center align-items-center">
+    <div v-for="movie in viewableMovies" :key="movie.id"
+      class="card m-2" :class="getMovieClass(movie.id)">
+      <div class="card-block">
+        <strong><a :href="movie.url">{{ movie.title }}</a></strong>
+        <p class="card-text">
+          <span v-for="genre in movie.genres" class="badge badge-default text-capitalize mr-1" :style="{ 'background-color': getGenreColor(genre) }">
+            {{ genre }}
+          </span>
+        </p>
+      </div>
     </div>
   </div>
 </div>

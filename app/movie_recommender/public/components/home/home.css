@@ -1,0 +1,35 @@
+#home-container {
+  background: linear-gradient(rgba(246, 248, 249, 1) 0%, rgba(229, 235, 238, 1) 50%, rgba(215, 222, 227, 1) 51%, rgba(245, 247, 249, 1) 100%);
+  padding: 15px;
+  width: 100%;
+  min-height: 100%;
+}
+
+#home-panel {
+  margin: auto;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  max-height: 566px;
+  max-width: 350px;
+  z-index: 1000;
+}
+#home-panel .dropdown-item {
+  white-space: normal;
+}
+#home-panel .ratings {
+  font-size: 3em;
+}
+
+#movie-dome .card {
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.3);
+  font-size: .9rem;
+  max-width: 250px;
+  opacity: .5;
+}
+#movie-dome .card.recommended {
+  box-shadow: 0 10px 16px 0 rgba(0, 0, 0, 0.3), 0 6px 20px 0 rgba(0, 0, 0, 0.2);
+  opacity: 1;
+}

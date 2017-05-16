@@ -26,7 +26,7 @@ def status():
 
 @api.route('/login', methods=['POST'])
 def login():
-    user_id = request.json['user_id']
+    user_id = int(request.json['user_id'])
     session['user_id'] = user_id
     return jsonify(user_id=user_id), 200
 
@@ -44,12 +44,6 @@ def get_movies():
     return jsonify(movies), 200
 
 
-@api.route('/movie/<movie_id>/recommended', methods=['GET'])
-def recommend_movies_based_on_movie(movie_id):
-    movies = movie_recommender.get_similar_movies(movie_id)
-    return jsonify(movies), 200
-
-
 @login_required
 @api.route('/movies/recommended', methods=['GET'])
 def recommend_movies_based_on_user():
@@ -58,10 +52,16 @@ def recommend_movies_based_on_user():
     return jsonify(movies), 200
 
 
+@api.route('/movie/<movie_id>/recommended', methods=['GET'])
+def recommend_movies_based_on_movie(movie_id):
+    movies = movie_recommender.get_similar_movies(movie_id)
+    return jsonify(movies), 200
+
+
 @login_required
-@api.route('/movies/<movie_id>/rate', methods=['POST'])
+@api.route('/movie/<int:movie_id>/rate', methods=['POST'])
 def rate_movie(movie_id):
     rating = request.json['rating']
     user_id = session['user_id']
-    movie_dataset.rate_movie(movie_id, user_id, rating)
+    movie_recommender.update_user_ratings(user_id, movie_id, rating)
     return jsonify(status='OK'), 200

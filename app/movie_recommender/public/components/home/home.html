@@ -13,9 +13,12 @@
 
         viewableMovies: [],
         numMoviesInView: 100,
+
+        movieSearch: '',
         selectedMovie: null,
-        recommendedMovies: {},
-        movieSearch: ''
+        similarMovieMap: {},
+
+        recommendedMovieMap: {}
       };
     },
 
@@ -31,6 +34,30 @@
         return this.movies.filter(function(movie) {
           return movie.title.toLowerCase().startsWith(movieSearch);
         });
+      },
+
+      similarMovies: function() {
+        var movies = [];
+        var movieMap = this.similarMovieMap;
+        for (var movieId in movieMap) {
+          if (movieMap.hasOwnProperty(movieId)) movies.push(movieMap[movieId]);
+        }
+
+        return movies;
+      },
+
+      recommendedMovies: function() {
+        var movies = [];
+        var movieMap = this.recommendedMovieMap;
+        for (var movieId in movieMap) {
+          if (movieMap.hasOwnProperty(movieId)) movies.push(movieMap[movieId]);
+        }
+
+        return movies;
+      },
+
+      allRecommendedMovies: function() {
+        return this.similarMovies.concat(this.recommendedMovies);
       }
     },
 
@@ -38,7 +65,7 @@
       movieSearch: function(newVal) {
         if (newVal && this.selectedMovie && newVal !== this.selectedMovie.title) {
           this.selectedMovie = null;
-          this.recommendedMovies = {};
+          this.similarMovieMap = {};
         }
       }
     },
@@ -78,27 +105,32 @@
       putRandomMoviesIntoView: function() {
         var randomizedMovies = this.movies.slice().sort(function() { return 0.5 - Math.random(); });
         this.viewableMovies = randomizedMovies.slice(0, this.numMoviesInView);
-        this.putRecommendedMoviesIntoView();
+        this.putMoviesIntoView(this.allRecommendedMovies);
       },
 
-      putRecommendedMoviesIntoView: function() {
-        var recommendedMovies = this.recommendedMovies;
-        var numRecommendedMovies = recommendedMovies.length;
-        if (numRecommendedMovies === 0) return;
-        
-        // Find all recommended movies already in the view.
-        recommendedMoviesAlreadyInView = {};
+      putMoviesIntoView: function(movies, movieMap) {
+        var numMovies = movies.length;
+        if (numMovies === 0) return;
+
+        if (!movieMap) {
+          movieMap = {};
+          movies.forEach(function(movie) {
+            movieMap[movie.id] = movie;
+          });
+        }
+
+        // Find all movies already in view.
+        moviesAlreadyInView = {};
         var viewableMovies = this.viewableMovies;
         viewableMovies.forEach(function(movie) {
-          if (recommendedMovies.hasOwnProperty(movie.id)) recommendedMoviesAlreadyInView[movie.id] = true;
+          if (movieMap.hasOwnProperty(movie.id)) moviesAlreadyInView[movie.id] = true;
         });
 
-        // Find all recommended movies missing from the view.
-        missingMovies = [];
-        for (var movieId in recommendedMovies) {
-          if (recommendedMovies.hasOwnProperty(movieId) && !recommendedMoviesAlreadyInView.hasOwnProperty(movieId))
-            missingMovies.push(recommendedMovies[movieId]);
-        }
+        // Find all movies missing from view.
+        var missingMovies = [];
+        movies.forEach(function(movie) {
+          if (!moviesAlreadyInView.hasOwnProperty(movie.id)) missingMovies.push(movie);
+        });
 
         // Add the missing movies to random locations in the view.
         var $set = this.$set;
@@ -107,7 +139,7 @@
           i = Math.floor(Math.random() * numMoviesInView);
 
           // Find a random location that doesn't already have a recommended movie.
-          while (recommendedMovies.hasOwnProperty(viewableMovies[i].id)) {
+          while (movieMap.hasOwnProperty(viewableMovies[i].id)) {
             i = Math.floor(Math.random() * numMoviesInView);
           }
 
@@ -116,7 +148,10 @@
       },
 
       getMovieClass: function(movieId) {
-        if (this.recommendedMovies.hasOwnProperty(movieId)) {
+        if (this.recommendedMovieMap.hasOwnProperty(movieId)) {
+          return ['card-inverse', 'card-success', 'recommended'];
+        }
+        else if (this.similarMovieMap.hasOwnProperty(movieId)) {
           return ['card-inverse', 'card-primary', 'recommended'];
         }
       },
@@ -126,31 +161,61 @@
         return this.strToColor(genreLowerCased);
       },
 
-      getRecommendedMovies: function() {
+      getSimilarMovies: function() {
         var self = this;
-        var recommendedMovies = {};
+        var similarMovieMap = {};
 
         var url = '/api/movie/' + this.selectedMovie.id + '/recommended';
         return this.$http.get(url).then(
           function(res) {
             var movieMap = self.movieMap;
             res.body.forEach(function(movie) {
-              recommendedMovies[movie.id] = movieMap[movie.id];
+              similarMovieMap[movie.id] = movieMap[movie.id];
             });
 
-            self.$set(self, 'recommendedMovies', recommendedMovies);
+            self.$set(self, 'similarMovieMap', similarMovieMap);
+          }
+        );
+      },
+
+      getRecommnededMovies: function() {
+        var self = this;
+        var recommendedMovieMap = {};
+
+        var url = '/api/movies/recommended';
+        return this.$http.get(url).then(
+          function(res) {
+            var movieMap = self.movieMap;
+            res.body.forEach(function(movie) {
+              recommendedMovieMap[movie.id] = movieMap[movie.id];
+            });
+
+            self.$set(self, 'recommendedMovieMap', recommendedMovieMap);
           }
         );
       },
 
       onSelectMovie: function(movie) {
+        var self = this;
+
         this.movieSearch = movie.title;
         this.selectedMovie = movie;
-        this.getRecommendedMovies().then(this.putRecommendedMoviesIntoView);
+        this.getSimilarMovies().then(function() {
+          self.putMoviesIntoView(self.allRecommendedMovies);
+        });
       },
 
       onRateMovie: function(movie, stars) {
-        console.log(movie.title, stars);
+        var self = this;
+
+        var url = '/api/movie/' + movie.id + '/rate';
+        return this.$http.post(url, { rating: stars }).then(
+          function() {
+            self.getRecommnededMovies().then(function() {
+              self.putMoviesIntoView(self.allRecommendedMovies);
+            });
+          }
+        );
       },
 
       strToColor: function(str) {

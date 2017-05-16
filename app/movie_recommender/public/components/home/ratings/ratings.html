@@ -4,7 +4,7 @@
       <div>
         <span v-for="i in numRatings" class="rating pr-1"
           @mouseenter="activeRating = i" @mouseleave="activeRating = -1" @click="rate(i)">
-          <i class="fa fa-star" :class="{ active: i <= activeRating }"></i>
+          <i class="fa fa-star" :class="{ active: i <= activeRating || i <= selectedRating }"></i>
         </span>
       </div>
     `,
@@ -18,12 +18,14 @@
 
     data: function() {
       return {
-        activeRating: -1
+        activeRating: -1,
+        selectedRating: -1
       }
     },
 
     methods: {
       rate: function(stars) {
+        this.selectedRating = stars;
         this.$emit('click', stars);
       }
     }

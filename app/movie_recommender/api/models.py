@@ -7,18 +7,20 @@ class MovieRecommender:
     def __init__(self):
         self._knn = None
         self._nmf = None
+        self._predictions = None
+        self._trainset = None
 
     def initialize(self):
         data = Dataset.load_builtin('ml-100k')
-        self.trainset = data.build_full_trainset()
+        self._trainset = data.build_full_trainset()
 
         sim_options = {'name': 'pearson_baseline', 'user_based': False}
         self._knn = KNNBaseline(sim_options=sim_options)
-        self._knn.train(self.trainset)
+        self._knn.train(self._trainset)
 
         self._nmf = NMF()
-        self._nmf.train(self.trainset)
-        self._predictions = self._nmf.test(self.trainset.build_anti_testset())
+        self._nmf.train(self._trainset)
+        self._predictions = self._nmf.test(self._trainset.build_anti_testset())
 
     def get_similar_movies(self, movie_id, k=10):
         model = self._knn
@@ -43,5 +45,14 @@ class MovieRecommender:
         movie_ids = [similar_movie_id.encode('ascii') for similar_movie_id in similar_movie_ids]
         return movie_dataset.get_movies(movie_ids)
 
+    def update_user_ratings(self, movie_id, user_id, rating):
+        trainset_dict = dict(self._trainset.ur[user_id])
+        trainset_dict[movie_id] = rating
+        self._trainset.ur[user_id] = trainset_dict.items()
+        self.train()
 
+    def train(self):
+        self._nmf.train(self._trainset)
+        self._knn.train(self._trainset)
+        
 movie_recommender = MovieRecommender()

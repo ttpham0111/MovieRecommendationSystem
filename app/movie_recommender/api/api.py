@@ -60,8 +60,15 @@ def recommend_movies_based_on_movie(movie_id):
 @login_required
 @api.route('/movies/recommended', methods=['GET'])
 def recommend_movies_based_on_user():
-    # user_id = session['user_id']
-    user_id = str(932)
-
+    user_id = session['user_id']
     movies = movie_recommender.get_similar_movies_for_user(user_id)
     return jsonify(movies), 200
+
+
+@login_required
+@api.route('/movies/<movie_id>/rate', methods=['POST'])
+def rate_movie(movie_id):
+    rating = request.json['rating']
+    user_id = session['user_id']
+    movie_dataset.rate_movie(movie_id, user_id, rating)
+    return jsonify(status='OK'), 200

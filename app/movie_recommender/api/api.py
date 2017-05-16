@@ -5,13 +5,6 @@ from flask import Blueprint, jsonify, session, request
 from movie_recommender.api.data import movie_dataset
 from movie_recommender.api.models import movie_recommender
 
-from collections import defaultdict
-from surprise import SVD
-from surprise import Dataset
-from surprise import NMF
-
-
-
 api = Blueprint('api', __name__)
 
 

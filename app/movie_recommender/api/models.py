@@ -54,5 +54,6 @@ class MovieRecommender:
     def train(self):
         self._nmf.train(self._trainset)
         self._knn.train(self._trainset)
-        
+
+
 movie_recommender = MovieRecommender()

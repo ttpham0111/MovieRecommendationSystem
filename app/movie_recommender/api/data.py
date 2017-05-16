@@ -34,10 +34,10 @@ class MovieDataset:
     def get_movies(self, movie_ids=None):
         movies = self._movies
 
-        if movie_ids:
-            return [movies[movie_id] for movie_id in movie_ids]
-        else:
+        if movie_ids is None:
             return movies.values()
+        else:
+            return [movies[movie_id] for movie_id in movie_ids]
 
 
 movie_dataset = MovieDataset()

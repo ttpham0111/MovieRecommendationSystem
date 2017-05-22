@@ -1,0 +1,2 @@
+recursive-include movie_recommender/api/data *
+recursive-include movie_recommender/public *

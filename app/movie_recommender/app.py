@@ -29,7 +29,7 @@ def initialize_data():
     here = os.path.dirname(os.path.realpath(__file__))
 
     movie_dataset.initialize(os.path.join(here, 'api/data/ml-100k/u.item'), delimiter='|')
-    movie_recommender.initialize()
+    movie_recommender.initialize(os.path.join(here, 'api/data/ml-100k/u.data'))
 
 
 # Initialize data

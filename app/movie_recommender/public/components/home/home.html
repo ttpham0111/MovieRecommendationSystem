@@ -18,7 +18,8 @@
         selectedMovie: null,
         similarMovieMap: {},
 
-        recommendedMovieMap: {}
+        recommendedMovieMap: {},
+        isRating: false
       };
     },
 
@@ -208,11 +209,14 @@
       onRateMovie: function(movie, stars) {
         var self = this;
 
+        this.isRating = true;
+
         var url = '/api/movie/' + movie.id + '/rate';
         return this.$http.post(url, { rating: stars }).then(
           function() {
             self.getRecommnededMovies().then(function() {
               self.putMoviesIntoView(self.allRecommendedMovies);
+              self.isRating = false;
             });
           }
         );

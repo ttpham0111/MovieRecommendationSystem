@@ -1,6 +1,7 @@
+from thread import start_new_thread
 from time import time
 
-from surprise import KNNBaseline, NMF, Dataset
+from surprise import KNNBaseline, NMF, Dataset, Reader
 
 from movie_recommender.api.data import movie_dataset
 
@@ -11,15 +12,15 @@ class MovieRecommender:
         self._nmf = None
         self._trainset = None
 
-    def initialize(self):
-        self._data = Dataset.load_builtin('ml-100k')
+    def initialize(self, data_filepath):
+        self._data = Dataset.load_from_file(data_filepath, reader=Reader('ml-100k'))
         self._trainset = self._data.build_full_trainset()
 
         sim_options = {'name': 'pearson_baseline', 'user_based': False}
         self._knn = KNNBaseline(sim_options=sim_options)
         self._nmf = NMF()
 
-        self._train()
+        start_new_thread(self._train)
 
     def get_similar_movies(self, movie_id, k=10):
         model = self._knn

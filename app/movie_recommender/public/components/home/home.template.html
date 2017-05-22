@@ -31,7 +31,12 @@
         <span v-for="genre in selectedMovie.genres" class="badge badge-default text-capitalize mr-1" :style="{ 'background-color': getGenreColor(genre) }">
           {{ genre }}
         </span>
-        <mr-ratings class="ratings text-center" @click="onRateMovie(selectedMovie, $event)"></mr-ratings>
+        <mr-ratings v-if="!isRating"
+          class="ratings text-center" @click="onRateMovie(selectedMovie, $event)"></mr-ratings>
+
+        <div v-else class="progress my-2">
+          <div class="progress-bar bg-success progress-bar-striped progress-bar-animated active" style="width: 100%"></div>
+        </div>
       </div>
     </div>
   </div>

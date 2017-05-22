@@ -11,6 +11,9 @@ class MovieRecommender:
         self._knn = None
         self._nmf = None
         self._trainset = None
+        self._predictions = None
+
+        self.initialized = False
 
     def initialize(self, data_filepath):
         self._data = Dataset.load_from_file(data_filepath, reader=Reader('ml-100k'))
@@ -23,6 +26,9 @@ class MovieRecommender:
         start_new_thread(self._train)
 
     def get_similar_movies(self, movie_id, k=10):
+        if not self.initialized:
+            return []
+
         model = self._knn
 
         movie_inner_id = model.trainset.to_inner_iid(movie_id)
@@ -35,10 +41,11 @@ class MovieRecommender:
         return movie_dataset.get_movies(movie_ids)
 
     def get_similar_movies_for_user(self, user_id, num_movies=10):
-        predictions = self._nmf.test(self._trainset.build_anti_testset())
+        if not self.initialized:
+            return []
 
         user_id = str(user_id)
-        user_predictions = [prediction for prediction in predictions if prediction[0] == user_id]
+        user_predictions = [prediction for prediction in self._predictions if prediction[0] == user_id]
 
         sorted_predictions = sorted(user_predictions, key=lambda x: x.est, reverse=True)
         top_n_predictions = sorted_predictions[:num_movies]
@@ -49,6 +56,9 @@ class MovieRecommender:
         return movie_dataset.get_movies(movie_ids)
 
     def update_user_ratings(self, user_id, movie_id, rating):
+        if not self.initialized:
+            return
+
         rating = float(rating)
 
         has_previous_rating = False
@@ -73,6 +83,10 @@ class MovieRecommender:
     def _train(self):
         self._nmf.train(self._trainset)
         self._knn.train(self._trainset)
+
+        self._predictions = self._nmf.test(self._trainset.build_anti_testset())
+
+        self.initialized = True
 
 
 movie_recommender = MovieRecommender()
